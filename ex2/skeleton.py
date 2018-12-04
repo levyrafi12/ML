@@ -14,7 +14,12 @@ class Assignment2(object):
     """
 
     """NEW_COMMENT 1"""
-    def y_sample(self, x):
+    def sample_y(self, x):
+        """
+        Calculate y accroding the distribution
+        Input: x - single x sampling
+        Returns: y - single y sampling 
+        """
         p = np.random.uniform(low=0.0, high=1.0, size=1)
         if x <= 0.2 or 0.4 <= x and x <= 0.6 or x >= 0.8:
             y = 1 if p <= 0.8 else 0
@@ -22,19 +27,32 @@ class Assignment2(object):
             y = 1 if p <= 0.1 else 0
         return y
 
-    def overlap_penalty(I1, I2, p):
+    def overlap_penalty(self, I1, I2, p):
+        """
+        Calculate the overlapping penalty
+        Input: I1, I2 - intervals
+               p -  probability
+        Returns: penalty - the overlapping interval multiplied by probabilty p
+        """
         [L1, R1] = I1
         [L2, R2] = I2
         # non overlapping
-         if R1 < L2 or R2 < L1:
+        if R1 < L2 or R2 < L1:
             return 0
         return (max(L1, L2) - min(R1, R2)) * p
 
     def calc_true_error(self, h):
+        """
+        Caclulate the true error (Ep(h))
+        Input: h - the hypothesis
+
+        Returns: Ep(h)
+        """
+
         compl_h = []
 
         L2 = 0.0
-        for [L1, R1] in hyp:
+        for [L1, R1] in h:
             R2 = L1
             if R2 > L2:
                 compl_h.append([L2, R2])
@@ -49,15 +67,15 @@ class Assignment2(object):
         penalty = 0.0
         for I1 in h:
             for I2 in best_h:
-                penalty += overlap_penalty(I1, I2, 0.2)
+                penalty += self.overlap_penalty(I1, I2, 0.2)
             for I2 in compl_best_h:
-                penalty += overlap_penalty(I1, I2, 0.9)
+                penalty += self.overlap_penalty(I1, I2, 0.9)
 
         for I1 in compl_h:
             for I2 in best_h:
-                penalty += overlap_penalty(I1, I2, 0.8)
+                penalty += self.overlap_penalty(I1, I2, 0.8)
             for I2 in compl_best_h:
-                penalty += overlap_penalty(I1, I2, 0.1)
+                penalty += self.overlap_penalty(I1, I2, 0.1)
 
         return penalty
 
@@ -128,21 +146,27 @@ class Assignment2(object):
             A two dimensional array that contains the average empirical error
             and the average true error for each m in the range accordingly.
         """
-        n_steps = (m_last - m_first) / step + 1
-        E = np.zero(n_steps, 2)
+        n_steps = int((m_last - m_first) / step + 1)
+        E = np.zeros((n_steps, 2), dtype=float)
 
         for t in range(T):
             i = 0
             for m in range(m_first, m_last + step, step):
-                S = sample_from_D(self, m)
+                S = self.sample_from_D(m)
                 intervals, besterror = find_best_interval(S[0,:], S[1,:] ,k)
-                E[i, 0] = E[i, 0] + besterror
-                Ep[i, 1] = E[i, 1] + calc_true_error(intervals)
-                i = i + 1
+                E[i, 0] += besterror
+                E[i, 1] += self.calc_true_error(intervals)
+                i += 1
 
         for i in n_steps:
             for j in 2:
-            E[i, j] = E[i, j] / T
+                E[i, j] /= T
+
+        m_vals = np.arange(m_first, m_last, step)
+    
+        plt.plot(E[:, 0], '-r', E[:, 1], '--b')
+        plt.axis(m_vals)
+        plt.show()
 
         return E
 
@@ -193,9 +217,9 @@ class Assignment2(object):
 
 if __name__ == '__main__':
     ass = Assignment2()
-    ass.draw_sample_intervals(100, 3)
-    """
+    # ass.draw_sample_intervals(100, 3)
     ass.experiment_m_range_erm(10, 100, 5, 3, 100)
+    """
     ass.experiment_k_range_erm(1500, 1, 20, 1)
     ass.experiment_k_range_srm(1500, 1, 20, 1)
     ass.cross_validation(1500, 3)
