@@ -169,7 +169,7 @@ class Assignment2(object):
         m_vals = np.arange(m_first, m_last + step, step)
     
         plt.plot(m_vals, E[:, 0], 'r-', m_vals, E[:, 1], 'b--')
-        plt.axis([0, m_last, 0, 1])
+        plt.axis([m_first, m_last, 0, 1])
         plt.text(10, 0.8, 'red = Es')
         plt.text(10, 0.7, 'blue = Ep')
         plt.show()
@@ -186,8 +186,29 @@ class Assignment2(object):
 
         Returns: The best k value (an integer) according to the ERM algorithm.
         """
-        # TODO: Implement the loop
-        pass
+        n_steps = int((k_last - k_first) / step + 1)
+
+        E = np.zeros((n_steps, 2), dtype=float)
+
+        S = self.sample_from_D(m)
+        i = 0
+        for k in range(k_first, k_last + step, step):
+            print("k {}".format(k))
+            intervals, besterror = find_best_interval(S[0,:], S[1,:] ,k)
+            E[i, 0] += (besterror / m)
+            E[i, 1] += self.calc_true_error(intervals)
+            i += 1
+        
+
+        k_vals = np.arange(k_first, k_last + step, step)
+    
+        plt.plot(k_vals, E[:, 0], 'r-', k_vals, E[:, 1], 'b--')
+        plt.axis([k_first, k_last, 0, 1])
+        plt.text(2, 0.8, 'red = Es')
+        plt.text(2, 0.7, 'blue = Ep')
+        plt.show()
+
+        return np.argmin(E[:, 0])
 
     def experiment_k_range_srm(self, m, k_first, k_last, step):
         """Runs the experiment in (d).
@@ -225,9 +246,9 @@ if __name__ == '__main__':
     ass = Assignment2()
     # ass.draw_sample_intervals(100, 3)
     # print(ass.calc_true_error([[0.1,0.3],[0.4,0.6],[0.8,1]]))
-    ass.experiment_m_range_erm(10, 100, 5, 3, 10)
-    """
-    ass.experiment_k_range_erm(1500, 1, 20, 1)
+    # ass.experiment_m_range_erm(10, 100, 5, 3, 10)
+    ass.experiment_k_range_erm(150, 1, 20, 1)
+    """ 'a '
     ass.experiment_k_range_srm(1500, 1, 20, 1)
     ass.cross_validation(1500, 3)
     """
