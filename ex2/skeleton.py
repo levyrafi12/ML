@@ -36,10 +36,12 @@ class Assignment2(object):
         """
         [L1, R1] = I1
         [L2, R2] = I2
+
         # non overlapping
         if R1 < L2 or R2 < L1:
             return 0
-        return (max(L1, L2) - min(R1, R2)) * p
+        res = (min(R1, R2) - max(L1, L2)) * p
+        return res
 
     def calc_true_error(self, h):
         """
@@ -147,25 +149,29 @@ class Assignment2(object):
             and the average true error for each m in the range accordingly.
         """
         n_steps = int((m_last - m_first) / step + 1)
+
         E = np.zeros((n_steps, 2), dtype=float)
 
         for t in range(T):
+            print("t {}".format(t))
             i = 0
             for m in range(m_first, m_last + step, step):
                 S = self.sample_from_D(m)
                 intervals, besterror = find_best_interval(S[0,:], S[1,:] ,k)
-                E[i, 0] += besterror
+                E[i, 0] += (besterror / m)
                 E[i, 1] += self.calc_true_error(intervals)
                 i += 1
 
-        for i in n_steps:
-            for j in 2:
+        for i in range(n_steps):
+            for j in range(2):
                 E[i, j] /= T
 
-        m_vals = np.arange(m_first, m_last, step)
+        m_vals = np.arange(m_first, m_last + step, step)
     
-        plt.plot(E[:, 0], '-r', E[:, 1], '--b')
-        plt.axis(m_vals)
+        plt.plot(m_vals, E[:, 0], 'r-', m_vals, E[:, 1], 'b--')
+        plt.axis([0, m_last, 0, 1])
+        plt.text(10, 0.8, 'red = Es')
+        plt.text(10, 0.7, 'blue = Ep')
         plt.show()
 
         return E
@@ -218,7 +224,8 @@ class Assignment2(object):
 if __name__ == '__main__':
     ass = Assignment2()
     # ass.draw_sample_intervals(100, 3)
-    ass.experiment_m_range_erm(10, 100, 5, 3, 100)
+    # print(ass.calc_true_error([[0.1,0.3],[0.4,0.6],[0.8,1]]))
+    ass.experiment_m_range_erm(10, 100, 5, 3, 10)
     """
     ass.experiment_k_range_erm(1500, 1, 20, 1)
     ass.experiment_k_range_srm(1500, 1, 20, 1)
