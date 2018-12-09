@@ -58,12 +58,15 @@ class Assignment2(object):
 			i += 2
 		"""
 
+		title = 'sampled intervals'
 		plt.axvline(x=0.2)
 		plt.axvline(x=0.4)
 		plt.axvline(x=0.6)
 		plt.axvline(x=0.8)
 		plt.axis([0, 1, -0.1, 1.1])
-		plt.show()
+		plt.title(title)
+		plt.savefig(title + '.png')
+		# plt.show()
 		return
 
 	def experiment_m_range_erm(self, m_first, m_last, step, k, T):
@@ -107,7 +110,7 @@ class Assignment2(object):
 		title = 'm_range_erm'
 		plt.title(title)
 		plt.savefig(title + '.png')
-		plt.show()
+		# plt.show()
 
 		return E
 
@@ -172,7 +175,7 @@ class Assignment2(object):
 			i += 1
 		
 		k_vals = np.arange(k_first, k_last + step, step)
-		sum_error = np.sum(E[:,1], E[:,2])
+		sum_error = np.sum(E[:,1] + E[:,2])
 
 		plt.plot(k_vals, E[:,0], 'r-', k_vals, E[:,1], 'b--', k_vals, E[:,2], 'go', \
 			k_vals, sum_error, 'y-')
@@ -205,33 +208,20 @@ class Assignment2(object):
 		m_t = m - m_ho # size of train data
 		E = np.zeros((n_steps, m_ho), dtype=float)
 
-		S = self.sample_from_D(m)
-		S_ho = S[:,:m_ho]
-		S_t = S[:,m_ho:]
-
-		G = []
-		i = 0
-		for k in range(k_first, k_last + step, step):
-			intervals, _ = find_best_interval(S_t[0,:], S_t[1,:] ,k)
-			G.append(intervals)
-
 		for t in range(T):
 			print("t {}".format(t))
+			S_t = self.sample_from_D(m_t)
+			S_ho = self.sample_from_D(m_ho)
 			i = 0
-			for intervals in G:
+			for k in range(k_first, k_last + step, step):
+				intervals, _ = find_best_interval(S_t[0,:], S_t[1,:] ,k)
 				for j in range(m_ho):
-					E[i,j] += (S_ho[1,j] != self.predict_y(intervals, S_ho[0,j]))
-					print("k = {} j = {} E {}".format(k_first + i * step, j, E[i,j]))
+					y_pred = self.predict_y(intervals, S_ho[0,j])
+					y = S_ho[1,j]
+					E[i,j] += (y != y_pred)
 				i += 1
 
-		G = np.zeros(n_steps, dtype=float)
-		i = 0;
-		for k in range(k_first, k_last + step, step):
-			G[i] = np.min(E[i,:])
-			i += 1
-
-		print(G)
-		best_k = k_first + np.argmin(G) * step
+		best_k = k_first + np.argmin(np.sum(E, axis=1)) * step
 		print("best k value found by cross validation algorithm {}".format(best_k))
 		return best_k
 
@@ -324,6 +314,6 @@ if __name__ == '__main__':
 	ass = Assignment2()
 	# ass.draw_sample_intervals(100, 3)
 	# ass.experiment_m_range_erm(10, 100, 5, 3, 100)
-	ass.experiment_k_range_erm(1500, 1, 10, 1)
+	# ass.experiment_k_range_erm(1500, 1, 10, 1)
 	# ass.experiment_k_range_srm(1500, 1, 10, 1)
-	# ass.cross_validation(1500, 1, 10, 1, 3)
+	ass.cross_validation(1500, 1, 10, 1, 3)
