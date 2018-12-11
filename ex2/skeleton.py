@@ -66,6 +66,7 @@ class Assignment2(object):
 		plt.axis([0, 1, -0.1, 1.1])
 		plt.title(title)
 		plt.savefig(title + '.png')
+		plt.close()
 		# plt.show()
 		return
 
@@ -110,6 +111,7 @@ class Assignment2(object):
 		title = 'm_range_erm'
 		plt.title(title)
 		plt.savefig(title + '.png')
+		plt.close()
 		# plt.show()
 
 		return E
@@ -146,6 +148,7 @@ class Assignment2(object):
 		title = 'k_range_erm'
 		plt.title(title)
 		plt.savefig(title + '.png')
+		plt.close()
 		# plt.show()
 
 		return np.argmin(E[:,0])
@@ -156,7 +159,7 @@ class Assignment2(object):
 		and the sum of penalty and empirical error.
 		Input: m - an integer, the size of the data sample.
 			   k_first - an integer, the maximum number of intervals in the first experiment.
-			   m_last - an integer, the maximum number of intervals in the last experiment.
+			   k_last - an integer, the maximum number of intervals in the last experiment.
 			   step - an integer, the difference between the size of k in each experiment.
 
 		Returns: The best k value (an integer) according to the SRM algorithm.
@@ -188,6 +191,7 @@ class Assignment2(object):
 		title = 'k_range_srm'
 		plt.title(title)
 		plt.savefig(title + '.png')
+		plt.close()
 		# plt.show()
 
 		best_k = np.argmin(sum_error)
@@ -312,8 +316,8 @@ class Assignment2(object):
 
 if __name__ == '__main__':
 	ass = Assignment2()
-	# ass.draw_sample_intervals(100, 3)
-	# ass.experiment_m_range_erm(10, 100, 5, 3, 100)
-	# ass.experiment_k_range_erm(1500, 1, 10, 1)
-	# ass.experiment_k_range_srm(1500, 1, 10, 1)
-	ass.cross_validation(1500, 1, 10, 1, 3)
+	ass.draw_sample_intervals(100, 3)
+	ass.experiment_m_range_erm(10, 100, 5, 3, 100)
+	ass.experiment_k_range_erm(1500, 1, 20, 1)
+	# ass.experiment_k_range_srm(1500, 1, 20, 1)
+	ass.cross_validation(1500, 1, 20, 1, 3)
