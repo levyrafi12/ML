@@ -174,7 +174,7 @@ class Assignment2(object):
 			intervals, besterror = find_best_interval(S[0,:], S[1,:] ,k)
 			E[i,0] += (besterror / m)
 			E[i,1] += self.calc_true_error(intervals)
-			# E[i, 2] += self.penaltySrm(intervals, k)
+			E[i, 2] += self.srm_penalty(k, m, 0.1)
 			i += 1
 		
 		k_vals = np.arange(k_first, k_last + step, step)
@@ -310,6 +310,18 @@ class Assignment2(object):
 			if x >= L and x <= R:
 				return 1
 		return 0
+
+	def penalty_srm(self, k, m, delta):
+		"""
+		Calculate srm penalty
+		Input: d - number of intervals
+		       m - size of the data sample
+			   delta - a parameter in srm penalty equation 
+		Returns: srm penalty
+		"""
+
+		d = 2 * k # vcdim of H_k
+		return ((2.0 / m) * np.log(2 * d / delta)) ** 0.5
 
 	#################################
 
