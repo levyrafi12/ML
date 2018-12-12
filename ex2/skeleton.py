@@ -58,7 +58,7 @@ class Assignment2(object):
 			i += 2
 		"""
 
-		title = 'sampled intervals'
+		title = 'sampled_intervals'
 		plt.axvline(x=0.2)
 		plt.axvline(x=0.4)
 		plt.axvline(x=0.6)
