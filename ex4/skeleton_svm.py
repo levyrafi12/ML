@@ -22,12 +22,12 @@ def get_points():
 	return X[:80], y[:80], X[80:], y[80:]
 
 
-def create_plot(X, y, clf):
+def create_plot(X, y, clf, C=1000, G='auto'):
 	plt.clf()
 
 	# plot the data points
 	plt.scatter(X[:, 0], X[:, 1], c=y, s=30, cmap=plt.cm.PiYG)
-
+	plt.text(4, 6, 'C = ' + str(C) + ', G = ' + str(G))
 	# plot the decision function
 	ax = plt.gca()
 	xlim = ax.get_xlim()
@@ -45,14 +45,12 @@ def create_plot(X, y, clf):
 			linestyles=['--', '-', '--'])
 
 
-def train_kernel(X_train, y_train, kernel_f):
-	clf = svm.SVC(C=1000, kernel=kernel_f)
+def train_kernel(X_train, y_train, kernel_f, C_val=1000, gamma_val='auto'):
+	clf = svm.SVC(C=C_val, kernel=kernel_f, gamma=gamma_val)
 	if kernel_f == 'poly':
 		clf.set_params(degree=2)
 
 	clf.fit(X_train, y_train)
-	create_plot(X_train, y_train, clf)
-	plt.show()
 	return clf
 
 def train_three_kernels(X_train, y_train, X_val, y_val):
@@ -68,6 +66,8 @@ def train_three_kernels(X_train, y_train, X_val, y_val):
 	clf_arr = [lin_clf, poly_clf, rbf_clf]
 
 	for i in range(3):
+		create_plot(X_train, y_train, clf_arr[i])
+		plt.show()
 		for j in range(2):
 			n_sv[i, j] = clf_arr[i].n_support_[j]
 
@@ -78,19 +78,73 @@ def linear_accuracy_per_C(X_train, y_train, X_val, y_val):
 		Returns: np.ndarray of shape (11,) :
 			An array that contains the accuracy of the resulting model on the VALIDATION set.
 	"""
-	# TODO: add your code here
+	res = np.zeros((11))
+	C = np.float_power(10, -6)
+	C_vals = []
+	for i in range(11):
+		C *= 10;
+		C_vals.append(C)
 
+	for i in range(len(C_vals)):
+		clf = train_kernel(X_train, y_train, 'linear', C_vals[i])
+		create_plot(X_train, y_train, clf, np.log10(C_vals[i]))
+		plt.show()
+		y_pred = clf.predict(X_val)
+		res[i] = 100 * (1 - np.sum([y_pred[i] ^ y_val[i] for i in range(len(y_val))]) / len(y_val))
+
+	plt.plot(np.log10(C_vals), res, 'b--')
+	plt.xlabel('penalty constant C in log10 scale')
+	plt.ylabel('accuracy percentage')
+	plt.show()
+	return res
 
 def rbf_accuracy_per_gamma(X_train, y_train, X_val, y_val):
 	"""
 		Returns: np.ndarray of shape (11,) :
 			An array that contains the accuracy of the resulting model on the VALIDATION set.
 	"""
-	# TODO: add your code here
+	C = 10
+	# gamma_vals = gamma_grid_search()
+	gamma_vals = gamma_grid_search_inc_res()
+	res = np.zeros((len(gamma_vals)))
+
+	for i in range(len(gamma_vals)):
+		clf = train_kernel(X_train, y_train, 'rbf', C, gamma_vals[i])
+		# create_plot(X_train, y_train, clf, C, np.log10(gamma_vals[i]))
+		# plt.show()
+		y_pred = clf.predict(X_val)
+		res[i] = 100 * (1 - np.sum([y_pred[i] ^ y_val[i] for i in range(len(y_val))]) / len(y_val))
+
+	# plt.plot(np.log10(gamma_vals), res, 'r--')
+	plt.xlabel('gamma')
+	plt.ylabel('accuracy percentage')
+	plt.show()
+	return res
+
+def gamma_grid_search():
+	gamma = np.float_power(10, -6)
+	gamma_vals = []
+	for i in range(11):
+		gamma *= 10
+		gamma_vals.append(gamma)
+	return gamma_vals
+
+def gamma_grid_search_inc_res():
+	gamma_beg = 0.1
+	gamma_end = 100
+
+	delta = (gamma_end - gamma_beg) / 100
+	gamma_vals = []
+
+	for i in range(100):
+		gamma_vals.append(gamma_beg + delta * i)
+	return gamma_vals
 
 if __name__ == "__main__":
 	x_train, y_train, x_val, y_val = get_points()
 	# for i in range(len(x_train)):
 	# print("{} {}".format(x_train[i], y_train[i]))
-	n_sv = train_three_kernels(x_train, y_train, x_val, y_val)
-	print(n_sv)
+	# n_sv = train_three_kernels(x_train, y_train, x_val, y_val)
+	# print(n_sv)
+	# linear_accuracy_per_C(x_train, y_train, x_val, y_val)
+	rbf_accuracy_per_gamma(x_train, y_train, x_val, y_val)
