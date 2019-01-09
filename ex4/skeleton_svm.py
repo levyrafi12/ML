@@ -104,40 +104,39 @@ def rbf_accuracy_per_gamma(X_train, y_train, X_val, y_val):
 			An array that contains the accuracy of the resulting model on the VALIDATION set.
 	"""
 	C = 10
-	# gamma_vals = gamma_grid_search()
-	gamma_vals = gamma_grid_search_inc_res()
+	# gamma_vals = gamma_log_grid_search()
+	gamma_vals = gamma_uniform_grid_search(0.2, 0.3, 11)
 	res = np.zeros((len(gamma_vals)))
 
 	for i in range(len(gamma_vals)):
 		clf = train_kernel(X_train, y_train, 'rbf', C, gamma_vals[i])
 		# create_plot(X_train, y_train, clf, C, np.log10(gamma_vals[i]))
+		# create_plot(X_train, y_train, clf, C, gamma_vals[i])
 		# plt.show()
 		y_pred = clf.predict(X_val)
 		res[i] = 100 * (1 - np.sum([y_pred[i] ^ y_val[i] for i in range(len(y_val))]) / len(y_val))
 
 	# plt.plot(np.log10(gamma_vals), res, 'r--')
+	plt.plot(gamma_vals, res, 'r--')
 	plt.xlabel('gamma')
 	plt.ylabel('accuracy percentage')
 	plt.show()
 	return res
 
-def gamma_grid_search():
-	gamma = np.float_power(10, -6)
+def gamma_log_grid_search(start_point=np.float_power(10, -6), n_points=11):
+	gamma = start_point
 	gamma_vals = []
-	for i in range(11):
+	for i in range(n_points):
 		gamma *= 10
 		gamma_vals.append(gamma)
 	return gamma_vals
 
-def gamma_grid_search_inc_res():
-	gamma_beg = 0.1
-	gamma_end = 100
-
-	delta = (gamma_end - gamma_beg) / 100
+def gamma_uniform_grid_search(start_point, end_point, n_points=100):
+	delta = (end_point - start_point) / n_points
 	gamma_vals = []
 
-	for i in range(100):
-		gamma_vals.append(gamma_beg + delta * i)
+	for i in range(n_points):
+		gamma_vals.append(start_point + delta * i)
 	return gamma_vals
 
 if __name__ == "__main__":
