@@ -56,9 +56,14 @@ class KerasMnist(object):
         as a Sequential model and add layers to it according to
         the class variables input_dim, hidden_layer_dims and num_classes.
         '''
-        ### YOUR CODE STARTS HERE
+        
+        self.model = Sequential()
+        self.model.add(Dense(self.hidden_layer_dims[0], input_shape=(self.input_dim,)))
 
-        ### YOUR CODE ENDS HERE
+        for hl in self.hidden_layer_dims:
+            self.model.add(Dense(hl, activation='relu'))
+        
+        self.model.add(Dense(self.num_classes, activation='softmax'))
 
         self.model.compile(loss='categorical_crossentropy',
                            optimizer=SGD(),
