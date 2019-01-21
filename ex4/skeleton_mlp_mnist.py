@@ -6,8 +6,9 @@ seed(1)
 import keras
 from keras.datasets import mnist
 from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Input
+from keras.layers import Dense, Activation, Input, Lambda
 from keras.optimizers import SGD
+from keras import backend as K
 
 from matplotlib import pyplot as plt
 
@@ -63,7 +64,7 @@ class KerasMnist(object):
         for hl in self.hidden_layer_dims:
             self.model.add(Dense(hl, activation='relu'))
         
-        self.model.add(Dense(self.num_classes, activation='softmax'))
+        self.model.add(Dense(self.num_classes, activation=K.tf.nn.softmax))
 
         self.model.compile(loss='categorical_crossentropy',
                            optimizer=SGD(),
