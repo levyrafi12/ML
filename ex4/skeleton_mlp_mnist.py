@@ -6,7 +6,7 @@ seed(1)
 import keras
 from keras.datasets import mnist
 from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Input, Lambda
+from keras.layers import Dense, Activation, Input
 from keras.optimizers import SGD
 from keras import backend as K
 
@@ -59,9 +59,9 @@ class KerasMnist(object):
         '''
         
         self.model = Sequential()
-        self.model.add(Dense(self.hidden_layer_dims[0], input_shape=(self.input_dim,)))
+        self.model.add(Dense(self.hidden_layer_dims[0], input_shape=(self.input_dim,), activation='relu'))
 
-        for hl in self.hidden_layer_dims:
+        for hl in self.hidden_layer_dims[1:]:
             self.model.add(Dense(hl, activation='relu'))
         
         self.model.add(Dense(self.num_classes, activation=K.tf.nn.softmax))
@@ -82,10 +82,13 @@ class KerasMnist(object):
          1) Define the variable x as the input to the network.
          2) Define the variable out as the output of the network.
         '''
-        ### YOUR CODE STARTS HERE
+        """
+        x = Input(shape=(self.input_dim,))
+        out = Dense(hl[0], activation='relu'))(x)
 
-        ### YOUR CODE ENDS HERE
-
+        for i in range(1, len(self.hidden_layer_dims)):
+            out = Dense(hl[i], activation='relu'))(out)
+        """
         self.model = Model([x], out)
         self.model.compile(loss='categorical_crossentropy',
                            optimizer=SGD(),
