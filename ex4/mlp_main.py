@@ -5,7 +5,6 @@ import argparse
 
 
 def train_eval_single(hidden_layers, skips, epochs, batch_size, output_curve=None):
-    print("hello")
     km = KerasMnist(hidden_layers, skips, epochs, batch_size)
     km.load_data()
     km.build_model()
