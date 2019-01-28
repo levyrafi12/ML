@@ -13,7 +13,7 @@ def read_data():
     root_path = os.path.join('review_polarity', 'txt_sentoken')
     pos, neg = {}, {}
     for class_name in ['pos', 'neg']:
-        base_path = root_path + class_name
+        base_path = os.path.join(root_path, class_name)
         for filename in os.listdir(base_path):
             with open(os.path.join(base_path, filename), 'r') as fd:
                 tokens = []
