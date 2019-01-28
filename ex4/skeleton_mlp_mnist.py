@@ -12,6 +12,7 @@ from keras import backend as K
 
 from matplotlib import pyplot as plt
 
+from collections import deque
 
 class KerasMnist(object):
     def __init__(self, hidden_layers, skips, epochs, batch_size):
@@ -82,13 +83,21 @@ class KerasMnist(object):
          1) Define the variable x as the input to the network.
          2) Define the variable out as the output of the network.
         '''
-        """
         x = Input(shape=(self.input_dim,))
-        out = Dense(hl[0], activation='relu'))(x)
+        non_linear_outs = [Dense(self.hidden_layer_dims[0])(x)]
+        out = keras.layers.Activation('relu')(non_linear_outs[-1]) 
+        
+        i = 1
+        for hl in self.hidden_layer_dims[1:]:
+            i += 1
+            non_linear_outs.append(Dense(hl)(out)) # W_i * out
+            y = non_linear_outs[-1]
+            if (i - 1) % self.skips == 0: # layer 3, 5, ... assume skip is 2
+                y = keras.layers.add([y, non_linear_outs[-self.skips - 1]])
+            out = keras.layers.Activation('relu')(y)
+        
+        out = Dense(self.num_classes, activation=K.tf.nn.softmax)(out)
 
-        for i in range(1, len(self.hidden_layer_dims)):
-            out = Dense(hl[i], activation='relu'))(out)
-        """
         self.model = Model([x], out)
         self.model.compile(loss='categorical_crossentropy',
                            optimizer=SGD(),
