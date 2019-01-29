@@ -24,11 +24,11 @@ def run_adaboost(X_train, y_train, T, inverse_vocab):
             iteration of the algorithm.
     """
     n_samples = X_train.shape[0]
-    D_t = [1 / n_samples for i in range(n_samples)]
+    D_t = np.ones(n_samples) / n_samples
     alpha_vals = []
     h_vals = []
 
-    clf = [0] * n_samples
+    f = np.zeros(n_samples)
 
     for t in range(T):
         print("t = {}".format(t))
@@ -37,24 +37,19 @@ def run_adaboost(X_train, y_train, T, inverse_vocab):
         print("{} {} {} {}".format(h_pred, inverse_vocab[h_index], h_theta, eps_t))
 
         h_vals.append((h_pred, h_index, h_theta))
-        alpha_vals.append(0.5 * np.log((1 - eps_t) / eps_t)) # linear coefficient
+        alpha_vals.append(0.5 * np.log((1 - eps_t) / eps_t)) # hypothesis weight
         alpha_t = alpha_vals[-1]
 
-        for i in range(n_samples):
-            if X_train[i, int(h_index)] <= h_theta:
-                clf[i] += alpha_t * h_pred
-            else:
-                clf[i] += alpha_t * -h_pred
-        # print(clf)
-        g_x = np.sign(clf)
-        # print(g_x)
-        print("train error {}".format(sum([int(y_train[i] != g_x[i]) for i in range(n_samples)])))
+        f += alpha_t * estimate_y(X_train, h_pred, h_index, h_theta)
 
-        Z_t = sum([D_t[i] * np.exp(-alpha_t * y_train[i] * hyp(h_pred, h_theta, X_train[i, int(h_index)])) \
-            for i in range(n_samples)])
-        D_t = [D_t[i] * np.exp(-alpha_t * y_train[i] * hyp(h_pred, h_theta, X_train[i, int(h_index)])) \
-            / Z_t for i in range(n_samples)]
+        g = np.sign(f)
+        print("train error {} {}".format(np.sum(y_train != g), alpha_t))
+        # print("train error {}".format(np.sum(y_train != estimate_y(X_train, h_pred, h_index, h_theta))))
 
+        # update D_t
+        D_t_1 = D_t * np.exp(-alpha_t * y_train * estimate_y(X_train, h_pred, h_index, h_theta))
+        D_t = D_t_1 / np.sum(D_t_1)
+        
     return h_vals, alpha_vals
 
 # You can add more methods here, if needed.
@@ -63,27 +58,21 @@ def weak_learner_dt(D, X_train, y_train):
     n_samples = X_train.shape[0]
     n_features = X_train.shape[1]
 
-    clf = DecisionTreeClassifier(random_state=0, max_depth=1)
-
     best_eps = 1
+
+    clf = DecisionTreeClassifier(random_state=0, max_depth=1)
 
     for j in range(n_features):
         clf.fit(X_train[:, j].reshape(-1,1), y_train)
-        y_pred = clf.predict(X_train[:, j].reshape(-1,1))
         theta = clf.tree_.threshold[0]
-        # find the left leaf value
-        if X_train[0, j] <= theta:
-            sgn_val = y_pred[0] 
-        else:
-            sgn_val = -y_pred[0]
-
-        eps = sum([int(y_train[i] != sgn_val) * D[i] if X_train[i, j] <= theta \
-            else int(y_train[i] != -sgn_val) * D[i] for i in range(n_samples)])
-        if eps < best_eps:
-            best_theta = theta
-            best_sgn_val = sgn_val
-            best_ind = j
-            best_eps = eps
+        for sgn_val in [-1, 1]:
+            eps = np.sum(D * (y_train != estimate_y(X_train, sgn_val, j, theta)))
+            
+            if eps < best_eps:
+                best_theta = theta
+                best_sgn_val = sgn_val
+                best_ind = j
+                best_eps = eps
 
     return best_sgn_val, best_ind, best_theta, best_eps
 
@@ -97,8 +86,7 @@ def weak_learner(D, X_train, y_train):
         word_counts = np.unique(X_train[:, j].reshape(-1,1)) 
         for theta in word_counts:
             for sgn_val in [-1, 1]:
-                eps = sum([int(y_train[i] == -sgn_val) * D[i] if X_train[i, j] <= theta \
-                    else int(y_train[i] == sgn_val) * D[i] for i in range(n_samples)])
+                eps = np.sum(D * estimate_y(X_train, h_pred, h_index, h_theta))
                 if eps < best_eps:
                     best_theta = theta
                     best_sgn_val = sgn_val
@@ -107,35 +95,56 @@ def weak_learner(D, X_train, y_train):
 
     return best_sgn_val, best_ind, best_theta, best_eps
 
-def hyp(h_pred, h_theta, word_count):
-    if word_count <= h_theta:
-        return h_pred
-    return -h_pred
+def estimate_y(X_train, h_pred, h_index, h_theta):
+    return (2 * (X_train[:, h_index] <= h_theta) - 1) * h_pred
 
-def training_error(h_vals, alpha_vals, X_train, y_train):
-    T = [i for i in range(len(h_vals))]
+def calc_error(h_vals, alpha_vals, x_data, y_data):
+    n_samples = x_data.shape[0]
 
-    n_samples = X_train.shape[0]
-    n_features = X_train.shape[1]
-
-    err = []
-    f = [0] * n_samples # f = sigma (alpha_t * h_t)
+    err_vals = []
+    f = np.zeros(n_samples)
 
     for (h_pred, h_index, h_theta), alpha in zip(h_vals, alpha_vals):
-        for i in range(n_samples):
-            if X_train[i, int(h_index)] <= h_theta:
-                y_val = h_pred 
-            else:
-                y_val = -h_pred
-            f[i] += alpha_t * y_val
+        f += alpha * estimate_y(x_data, h_pred, h_index, h_theta)
+        g = np.sign(f) # the classifier
+        err_vals.append(np.average(y_data != g))
 
-        g = np.sign(f)
-        err.append(sum([int(y_train[i] != g[i]) for i in range(n_samples)]) / n_samples)
+    return err_vals
 
-    plt.plot(T, err, 'b--')
-    plt.xlabel('T')
-    plt.ylabel('num errors')
-    plt.text(len(T) / 2, 0.5, 'training error e_s(g)')
+def calc_loss(h_vals, alpha_vals, x_data, y_data):
+    """
+        compute exponential loss
+    """
+    n_samples = x_data.shape[0]
+    loss_vals = []
+    f = np.zeros(n_samples)
+    for (h_pred, h_index, h_theta), alpha in zip(h_vals, alpha_vals):
+        f += alpha * estimate_y(x_data, h_pred, h_index, h_theta)
+        loss_vals.append(np.average(np.exp(-y_data * f)))
+    return loss_vals
+
+def gen_plots(h_vals, alpha_vals, X_train, y_train, X_test, y_test):
+    train_error = calc_error(h_vals, alpha_vals, X_train, y_train)
+    test_error = calc_error(h_vals, alpha_vals, X_test, y_test)
+
+    plt.plot(train_error, label='training error')
+    plt.plot(test_error, label='test error')
+    plt.xlabel('epoch')
+    plt.ylabel('error in percent')
+    plt.legend(loc='upper right')
+    plt.savefig('train_test_err')
+    plt.show()
+    plt.close()
+
+    train_loss = calc_loss(h_vals, alpha_vals, X_train, y_train)
+    test_loss = calc_loss(h_vals, alpha_vals, X_test, y_test)
+
+    plt.plot(train_loss, label='training loss')
+    plt.plot(test_loss, label='test loss')
+    plt.xlabel('epoch')
+    plt.ylabel('average exponential loss')
+    plt.legend(loc='upper right')
+    plt.savefig('train_test_loss')
     plt.show()
 
 def main():
@@ -144,18 +153,9 @@ def main():
         return
     (X_train, y_train, X_test, y_test, inverse_vocab) = data
 
-    n_samples = X_train.shape[0]
-    n_features = X_train.shape[1]
-
-    # for j in range(n_features):
-    # print("{} {}".format(inverse_vocab[j], X_train[:, j]))
-
     h_vals, alpha_vals = run_adaboost(X_train, y_train, 80, inverse_vocab)
 
-    # training_error(h_vals, alpha_vals, X_train, y_train)
-
-    # for h_pred, h_index, h_theta in h_vals:
-    # print("{} {} {}".format(h_pred, inverse_vocab[h_index], h_theta))
+    gen_plots(h_vals, alpha_vals, X_train, y_train, X_test, y_test)
 
 if __name__ == '__main__':
     main()
