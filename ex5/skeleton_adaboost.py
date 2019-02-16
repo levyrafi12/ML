@@ -34,18 +34,18 @@ def run_adaboost(X_train, y_train, T, inverse_vocab):
         print("t = {}".format(t))
         h_pred, h_index, h_theta, eps_t = weak_learner_dt(D_t, X_train, y_train) # use decision tree
 
-        print("{} {} {} {}".format(h_pred, inverse_vocab[h_index], h_theta, eps_t))
+        print("h_pred = {}, word = {}, theta = {}, eps = {}".format(\
+            h_pred, inverse_vocab[h_index], h_theta, eps_t))
 
         h_vals.append((h_pred, h_index, h_theta))
         alpha_vals.append(0.5 * np.log((1 - eps_t) / eps_t)) # hypothesis weight
         alpha_t = alpha_vals[-1]
 
         f += alpha_t * estimate_y(X_train, h_pred, h_index, h_theta)
-
+ 
         g = np.sign(f)
-        print("train error {} {}".format(np.sum(y_train != g), alpha_t))
-        # print("train error {}".format(np.sum(y_train != estimate_y(X_train, h_pred, h_index, h_theta))))
 
+        print("train error = {}, alpha = {}".format(np.sum(y_train != g), alpha_t))
         # update D_t
         D_t_1 = D_t * np.exp(-alpha_t * y_train * estimate_y(X_train, h_pred, h_index, h_theta))
         D_t = D_t_1 / np.sum(D_t_1)
@@ -77,7 +77,6 @@ def weak_learner_dt(D, X_train, y_train):
     return best_sgn_val, best_ind, best_theta, best_eps
 
 def weak_learner(D, X_train, y_train):
-    n_samples = X_train.shape[0]
     n_features = X_train.shape[1]
 
     best_eps = 1
@@ -86,7 +85,7 @@ def weak_learner(D, X_train, y_train):
         word_counts = np.unique(X_train[:, j].reshape(-1,1)) 
         for theta in word_counts:
             for sgn_val in [-1, 1]:
-                eps = np.sum(D * estimate_y(X_train, h_pred, h_index, h_theta))
+                eps = np.sum(D * (y_train != estimate_y(X_train, sgn_val, j, theta)))
                 if eps < best_eps:
                     best_theta = theta
                     best_sgn_val = sgn_val
