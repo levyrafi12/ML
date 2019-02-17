@@ -1,6 +1,12 @@
 from sklearn.datasets import fetch_mldata
-mnist = fetch_mldata('MNIST original')
-data = mnist['data']
+import numpy as np
+from collections import Counter
+
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+mnist = fetch_mldata('MNIST original', data_home='.')
+data = mnist['data'] # shape = num examples * 784
 labels = mnist['target']
 
 # training and test set of images as follows:
@@ -19,14 +25,29 @@ test_labels = labels[idx[10000:]]
 # L2 metric. In case of a tie between the k labels of neighbors, it will choose an arbitrary
 # option.
 
-def knn(train_points, labels, test_point, k):
-	print(train_points.shape)
+def knn(mat, labels, vec, k):
+	euclid_mat = np.apply_along_axis(lambda x: np.sqrt(np.dot((x - vec),(x - vec))), 1, mat)
+	indices = np.argsort(euclid_mat)
+	nearest_idx = indices[:k]
+	nearest_labels = [labels[i] for i in nearest_idx]
 
-if __name__ == '__main__':
+	c = Counter(nearest_labels) # a dictionary of keys and their counts
+	return c.most_common()[0][0]
+
+def calc_loss_given_k(k):
 	loss = 0
 	n = len(test)
 	for i in range(n):
 		pred_label = knn(train[:1000], train_labels[:1000], test[i], 10)
 		loss += (pred_label != test_labels[i])
+	return loss / n
 
-	print("loss ".format(loss / n))
+if __name__ == '__main__':
+	# loss = calc_loss_given_k(10)
+	# print("loss {}".format(loss))
+
+	plt.plot(k_vals, loss_vals)
+	plt.show()
+
+
+	
