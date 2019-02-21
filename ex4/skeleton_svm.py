@@ -78,8 +78,10 @@ def linear_accuracy_per_C(X_train, y_train, X_val, y_val):
 		Returns: np.ndarray of shape (11,) :
 			An array that contains the accuracy of the resulting model on the VALIDATION set.
 	"""
+	print(X_train.shape)
 	res = np.zeros((11))
-	C = np.float_power(10, -6)
+	C = 1e-6
+	print(C)
 	C_vals = []
 	for i in range(11):
 		C *= 10;
@@ -123,7 +125,7 @@ def rbf_accuracy_per_gamma(X_train, y_train, X_val, y_val):
 	plt.show()
 	return res
 
-def gamma_log_grid_search(start_point=np.float_power(10, -6), n_points=11):
+def gamma_log_grid_search(start_point=np.power(10, -6), n_points=11):
 	gamma = start_point
 	gamma_vals = []
 	for i in range(n_points):
@@ -145,5 +147,5 @@ if __name__ == "__main__":
 	# print("{} {}".format(x_train[i], y_train[i]))
 	# n_sv = train_three_kernels(x_train, y_train, x_val, y_val)
 	# print(n_sv)
-	# linear_accuracy_per_C(x_train, y_train, x_val, y_val)
-	rbf_accuracy_per_gamma(x_train, y_train, x_val, y_val)
+	linear_accuracy_per_C(x_train, y_train, x_val, y_val)
+	# rbf_accuracy_per_gamma(x_train, y_train, x_val, y_val)
