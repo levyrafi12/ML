@@ -25,8 +25,7 @@ class Assignment2(object):
 		xs = sorted(xs)
 		A[0,:] = xs
 		for i in range(0,len(xs)):
-			x = xs[i]
-			A[1, i] = self.sample_y(x)
+			A[1, i] = self.sample_y(xs[i])
 
 		return A     
 
@@ -51,15 +50,9 @@ class Assignment2(object):
 		print("besterror = {}".format(besterror))
 
 		plt.plot(S[0,:], S[1, :], 'ro')
-		"""i = 0
-		while i < len(points):
-			plt.hlines(0.8, points[i], points[i + 1], 'b', lw=2)
-			intervals.append([points[i], points[i + 1]])
-			i += 2
-		"""
 
 		title = 'sampled_intervals'
-		plt.axvline(x=0.2)
+		plt.axvline(x=0.2) # print vertical line
 		plt.axvline(x=0.4)
 		plt.axvline(x=0.6)
 		plt.axvline(x=0.8)
@@ -109,6 +102,8 @@ class Assignment2(object):
 		plt.text(20, 0.8, 'red = Es')
 		plt.text(20, 0.7, 'blue = Ep')
 		title = 'm_range_erm'
+		plt.xlabel('m')
+		plt.ylabel('Error')
 		plt.title(title)
 		plt.savefig(title + '.png')
 		plt.close()
@@ -146,6 +141,8 @@ class Assignment2(object):
 		plt.text(2, 0.8, 'red = Es')
 		plt.text(2, 0.7, 'blue = Ep')
 		title = 'k_range_erm'
+		plt.xlabel('k')
+		plt.ylabel('Error')
 		plt.title(title)
 		plt.savefig(title + '.png')
 		plt.close()
@@ -178,7 +175,7 @@ class Assignment2(object):
 			i += 1
 		
 		k_vals = np.arange(k_first, k_last + step, step)
-		sum_error = np.sum(E[:,1] + E[:,2])
+		sum_error = np.sum(E[:,0] + E[:,2])
 
 		plt.plot(k_vals, E[:,0], 'r-', k_vals, E[:,1], 'b--', k_vals, E[:,2], 'go', \
 			k_vals, sum_error, 'y-')
@@ -187,7 +184,9 @@ class Assignment2(object):
 		plt.text(2, 0.8, 'red = Es')
 		plt.text(2, 0.7, 'blue = Ep')
 		plt.text(2, 0.6, 'green = PenaltySrm')
-		plt.text(2, 0.5, 'yellow = Ep + PenaltySrm')
+		plt.text(2, 0.5, 'yellow = Es + PenaltySrm')
+		plt.xlabel('k')
+		plt.ylabel('Error')
 		title = 'k_range_srm'
 		plt.title(title)
 		plt.savefig(title + '.png')
@@ -311,25 +310,25 @@ class Assignment2(object):
 				return 1
 		return 0
 
-	def penalty_srm(self, k, m, delta):
+	def srm_penalty(self, k, m, delta):
 		"""
 		Calculate srm penalty
-		Input: d - number of intervals
+		Input: k - number of intervals
 		       m - size of the data sample
-			   delta - a parameter in srm penalty equation 
+			   delta - confidence parameter in srm penalty equation 
 		Returns: srm penalty
 		"""
 
-		d = 2 * k # vcdim of H_k
-		return ((2.0 / m) * np.log(2 * d / delta)) ** 0.5
+		# vcdim(H_k) = 2k
+		return (1 / m) * (2 * k * np.log(m / (2 * k)) + np.log(1 / delta))
 
 	#################################
 
 
 if __name__ == '__main__':
 	ass = Assignment2()
-	ass.draw_sample_intervals(100, 3)
-	ass.experiment_m_range_erm(10, 100, 5, 3, 100)
-	ass.experiment_k_range_erm(1500, 1, 20, 1)
-	# ass.experiment_k_range_srm(1500, 1, 20, 1)
-	ass.cross_validation(1500, 1, 20, 1, 3)
+	# ass.draw_sample_intervals(100, 3) # m = 100, k = 3 
+	#ass.experiment_m_range_erm(10, 100, 5, 3, 100) 
+	# ass.experiment_k_range_erm(1500, 1, 10, 1)
+	ass.experiment_k_range_srm(1500, 1, 10, 1)
+	# ass.cross_validation(1500, 1, 20, 1, 3)
