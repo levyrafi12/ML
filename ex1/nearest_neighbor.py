@@ -40,41 +40,31 @@ def knn(mat, labels, vec, k):
 	c = Counter(nearest_labels) # a dictionary of keys and their counts
 	return c.most_common()[0][0]
 
-def calc_loss_given_k(k):
-	print("k {}".format(k))
+def calc_loss_given_k(X, y, k):
 	loss = 0
 	n = len(test[:100])
 	neigh = KNeighborsClassifier(n_neighbors=k)
-	neigh.fit(train[:1000], train_labels[:1000])
+	neigh.fit(X, y)
 	for i in range(n):
-		# pred_label = knn(train[:1000], train_labels[:1000], test[i], k)
+		# pred_label = knn(X, y, test[i], k)
 		pred_label = neigh.predict(test[i])
-		# if pred_label != test_labels[i]:
-		# print("k {}, test label {}, predicted label {}".format(k, test_labels[i], pred_label))
 		loss += (pred_label != test_labels[i])
 	return loss / n
 
-def visualize_data(train_data, labels):
-	X = train_data
-	y = labels
-
+def visualize_data(X, y):
 	pca = PCA(n_components=2)
-
 	pca_result = pca.fit_transform(X)
 
 	plt.scatter(x=pca_result[:, 0], y = pca_result[:, 1], c=y, cmap=plt.cm.get_cmap('Paired'))
-
 	plt.show()
 
-if __name__ == '__main__':
-	# loss = calc_loss_given_k(10)
-	# print("loss {}".format(loss))
-	visualize_data(train[:1000], train_labels[:1000])
+def iterate_over_k():
 	acc_vals = []
 	k_vals = []
 
 	for k in range(100):
-		loss = calc_loss_given_k(k + 1)
+		print("k {}".format(k))
+		loss = calc_loss_given_k(train[:1000], train_labels[:1000], k + 1)
 		acc_vals.append(1 - loss)
 		k_vals.append(k)
 
@@ -86,6 +76,34 @@ if __name__ == '__main__':
 	plt.xlabel('k')
 	plt.savefig(title)
 	plt.show()
+
+def iterate_over_n():
+	acc_vals = []
+	n_vals = []
+	
+	for n in range(100, 5100, 100):
+		print("n {}".format(n))
+		loss = calc_loss_given_k(train[:n], train_labels[:n], 1)
+		acc_vals.append(1 - loss)
+		n_vals.append(n)
+
+	title = 'acc_as_func_of_n'
+	plt.title(title)
+	plt.plot(n_vals, acc_vals, 'b--')
+	plt.ylim(ymax = 1)
+	plt.ylabel('accuracy')
+	plt.xlabel('n')
+	plt.savefig(title)
+	plt.show()
+
+if __name__ == '__main__':
+	# loss = calc_loss_given_k(10)
+	# print("loss {}".format(loss))
+	# visualize_data(train[:1000], train_labels[:1000])
+	# iterate_over_k()
+	iterate_over_n()
+
+	
 
 
 	
