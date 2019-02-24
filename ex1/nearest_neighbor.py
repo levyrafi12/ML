@@ -32,13 +32,13 @@ test_labels = labels[idx[10000:]]
 
 def knn(mat, labels, vec, k):
 	# euclid_mat = np.apply_along_axis(lambda x: np.sqrt(np.dot((x - vec),(x - vec))), 1, mat)
-	euclid_mat = np.sum((mat - vec) * (mat - vec), axis=1)
+	euclid_mat = np.sum((mat - vec) * (mat - vec), axis=1) # sum is performed along each row
 	indices = np.argsort(euclid_mat)
 	nearest_idx = indices[:k]
 	nearest_labels = [labels[i] for i in nearest_idx]
 
 	c = Counter(nearest_labels) # a dictionary of keys and their counts
-	return c.most_common()[0][0]
+	return c.most_common(1)[0][0]
 
 def calc_loss_given_k(X, y, k):
 	loss = 0
@@ -47,7 +47,7 @@ def calc_loss_given_k(X, y, k):
 	neigh.fit(X, y)
 	for i in range(n):
 		# pred_label = knn(X, y, test[i], k)
-		pred_label = neigh.predict(test[i])
+		pred_label = neigh.predict(test[i])[0]
 		loss += (pred_label != test_labels[i])
 	return loss / n
 
@@ -63,30 +63,34 @@ def iterate_over_k(from_k, to_k, step):
 	k_vals = []
 
 	for k in range(from_k, to_k + step):
-		print("k {}".format(k))
 		loss = calc_loss_given_k(train[:1000], train_labels[:1000], k)
 		acc_vals.append(1 - loss)
 		k_vals.append(k)
 
+	best_acc, best_k = sorted(zip(acc_vals, k_vals), reverse=True)[0]
+	print("Best K is {} with accuracy {}".format(best_k, best_acc))
+
 	title = 'acc_as_func_of_k'
-	plt.text(0.5, 0.9, 'accuracy as a function of k', transform=plt.gca().transAxes, ha='center')
+	plt.text(0.5, 0.9, 'accuracy as a functioben of k', transform=plt.gca().transAxes, ha='center')
 	plt.title(title)
 	plt.plot(k_vals, acc_vals, 'r-')
 	plt.ylim(ymax = 1)
 	plt.ylabel('Accuracy')
 	plt.xlabel('k')
 	plt.savefig(title)
-	plt.show()
+	# plt.show()
 
 def iterate_over_n(from_n, to_n, step):
 	acc_vals = []
 	n_vals = []
 	
 	for n in range(from_n, to_n + step, step):
-		print("n {}".format(n))
 		loss = calc_loss_given_k(train[:n], train_labels[:n], 1)
 		acc_vals.append(1 - loss)
 		n_vals.append(n)
+
+	best_acc, best_n = sorted(zip(acc_vals, n_vals), reverse=True)[0]
+	print("Best n is {} with accuracy {}".format(best_n, best_acc))
 
 	title = 'acc_as_func_of_n'
 	plt.text(0.5, 0.9, 'accuracy as a function of n', transform=plt.gca().transAxes, ha='center')
@@ -96,7 +100,7 @@ def iterate_over_n(from_n, to_n, step):
 	plt.ylabel('Accuracy')
 	plt.xlabel('n')
 	plt.savefig(title)
-	plt.show()
+	# plt.show()
 
 if __name__ == '__main__':
 	# loss = calc_loss_given_k(10)
