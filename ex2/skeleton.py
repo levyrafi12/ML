@@ -40,9 +40,6 @@ class Assignment2(object):
 
 		S = self.sample_from_D(m)
 
-		points = np.random.uniform(low=0.0, high=1.0, size=2 * k)
-		points = sorted(points)
-
 		intervals, besterror = find_best_interval(S[0,:], S[1,:] ,k)
 		for inter in intervals:
 			plt.hlines(0.8, inter[0], inter[1], 'b', lw=2) # print horizontal line
@@ -175,9 +172,9 @@ class Assignment2(object):
 			i += 1
 		
 		k_vals = np.arange(k_first, k_last + step, step)
-		sum_error = np.sum(E[:,0] + E[:,2])
+		sum_error = E[:,0] + E[:,2]
 
-		plt.plot(k_vals, E[:,0], 'r-', k_vals, E[:,1], 'b--', k_vals, E[:,2], 'go', \
+		plt.plot(k_vals, E[:,0], 'r-', k_vals, E[:,1], 'b-', k_vals, E[:,2], 'g-', \
 			k_vals, sum_error, 'y-')
 
 		plt.axis([k_first, k_last, 0, 1])
@@ -190,11 +187,10 @@ class Assignment2(object):
 		title = 'k_range_srm'
 		plt.title(title)
 		plt.savefig(title + '.png')
-		plt.close()
 		# plt.show()
 
 		best_k = np.argmin(sum_error)
-		print("best k value found by srm {}".format(best_k))
+		print("best k value found by srm {}".format(best_k + 1))
 
 		return best_k
 
@@ -330,5 +326,5 @@ if __name__ == '__main__':
 	# ass.draw_sample_intervals(100, 3) # m = 100, k = 3 
 	#ass.experiment_m_range_erm(10, 100, 5, 3, 100) 
 	# ass.experiment_k_range_erm(1500, 1, 10, 1)
-	ass.experiment_k_range_srm(1500, 1, 10, 1)
-	# ass.cross_validation(1500, 1, 20, 1, 3)
+	# ass.experiment_k_range_srm(1500, 1, 10, 1)
+	ass.cross_validation(1500, 1, 10, 1, 3)
