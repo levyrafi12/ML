@@ -31,7 +31,10 @@ def get_pictures_by_name(name='Hugo Chavez'):
 		if (target == target_label):
 			image_vector = image.reshape((h*w, 1))
 			selected_images.append(image_vector)
-	return selected_images, h, w
+
+	n = len(selected_images)
+	d = selected_images[0].shape[0]
+	return np.asarray(selected_images).reshape(n, d), h, w
 
 def load_data():
 	# Don't change the resize factor!!!
@@ -44,6 +47,7 @@ Other then the PCA function below the rest of the functions are yours to change.
 """
 
 def PCA(X, k):
+	print(X.shape)
 	"""
 	Compute PCA on the given matrix.
 
@@ -57,108 +61,27 @@ def PCA(X, k):
 	  		of the covariance matrix.
 	  S - k largest eigenvalues of the covariance matrix. vector of dimension (k, 1)
 	"""
-	#set X matrix means to zero
-	col_means = np.average(X, axis=0)
-	print(X.shape)
-	print(col_means.shape)
-	X_norm = X - col_means
-	#print(X)
-	#print(X_norm.shape)
-	#n = dim(X)[0]
-	n = len(X)
 
-	#Perform SVD
-	u, s, vh = np.linalg.svd(X_norm.transpose(), full_matrices=True)
-	print(u.shape)
-	print(s.shape)
-	print(vh.shape)
+	mu = np.average(X, axis=0) / X.shape[0]
+	X_bar = np.apply_along_axis(lambda row: row - mu, 1, X)
 
-	eigen_vals = s*s #np.dot(s,s)/(n-1)
-	#print(eigen_vals)
-	#eigen_ranks = np.rankdata(eigen_vals, method='ordinal')
-	#eigen_order = eigen_vals.argsort()
-	#print(eigen_order)
-	#eigen_ranks = eigen_order.argsort()
-	#print(eigen_ranks)
-	#eigen_ranks_k = eigen_ranks[eigen_ranks <= k]
-	#print(eigen_ranks_k)
-	#keep_v_col = eigen_ranks <= k
-	#print(keep_v_col)
+	# Sigma = np.matmal(X_bar.T, X_bar) # covariance matrix
+	V, S, U = np.linalg.svd(X_bar)
+	print(X_bar.shape)
+	print(V.shape)
+	print(S.shape)
+	print(U.shape)
 
-	eigen_vec_cols = u[:,range(k)]
-	print(eigen_vec_cols.shape)
-	eigen_vec = eigen_vec_cols #.transpose()
-	#print(eigen_vec.shape)
-	#sort the eigenvector matrix by adding a column with eigenvalues, sort by eignvalues then remove eigenvalues.
-	#eigen_vec = np.insert(eigen_vec, [1], eigen_vals, axis = 1)
-	#sort_ind = np.argsort(eigen_vec[:: -1])
-	#eigen_vec = eigen_vec[sort_ind,:]
-	#print(eigen_vec)
+	return U[:k,:], S[:k]
 
-	U = eigen_vec #eigen_vec.sort(eigen_ranks_k, axis = 0)#???????????
-	S = eigen_vals[k-1]
+def main():
+	selected_images, h, w = get_pictures_by_name('Hugo Chavez')
+	print("{} {} {}".format(len(selected_images), selected_images[0].shape, h, w))
+	# plot_vector_as_image(selected_images[0], h, w, 0)
+	U, S = PCA(selected_images, 10)
+	print(U.shape)
+	for i in range(U.shape[0]):
+		plot_vector_as_image(U[i], h, w, i)
 
-	#U = None
-	#S = None
-	return U, S
-
-
-#data_loaded = load_data()
-picture_data = get_pictures_by_name()
-#print(picture_data)
-image = picture_data[0][1]
-image_h = picture_data[1]
-image_w = picture_data[2]
-
-#print(picture_data[0][0])
-print(image.shape)
-#print(image_h)
-#print(image_w)
-
-#plot_vector_as_image(image, image_h, image_w)
-
-
-#picture_matrix_list = picture_data[0]
-#picture_matrix = np.squeeze(np.stack( picture_matrix_list, axis=0 ), axis = 2)
-#picture_matrix = picture_matrix
-#print(picture_matrix)
-#PC_Chavez = PCA(picture_matrix,10)
-
-#print(PC_Chavez[0][0])
-
-
-def question_b():
-	picture_data = get_pictures_by_name()
-	image_h = picture_data[1]
-	image_w = picture_data[2]
-	picture_matrix_list = picture_data[0]
-	picture_matrix = np.squeeze(np.stack(picture_matrix_list, axis=0), axis=2)
-	picture_matrix = picture_matrix
-	PC_Chavez = PCA(picture_matrix, 10)
-	for i in range(10):
-		plot_vector_as_image(PC_Chavez[0][:,i], image_h, image_w, i)
-
-
-question_b()
-
-def question_c():
-	picture_data = get_pictures_by_name()
-	image_h = picture_data[1]
-	image_w = picture_data[2]
-	picture_matrix_list = picture_data[0]
-	picture_matrix = np.squeeze(np.stack(picture_matrix_list, axis=0), axis=2)
-	picture_matrix = picture_matrix
-	PC_Chavez = PCA(picture_matrix, 71)
-	print(PC_Chavez[0].shape)
-	transform_mat = np.matmul(PC_Chavez[0],PC_Chavez[0].transpose())
-
-	for i in range(15,20):
-		picture = picture_matrix[i,:]
-		#print(picture.shape)
-		#print(transform_mat.shape)
-		transformed_picture = np.matmul(transform_mat, picture)
-		#for i in range(20,21):
-		plot_vector_as_image(picture, image_h, image_w, 100+ i)
-		plot_vector_as_image(transformed_picture, image_h, image_w, 200 + i)
-
-question_c()
+if __name__ == '__main__':
+    main()
