@@ -78,25 +78,25 @@ def linear_accuracy_per_C(X_train, y_train, X_val, y_val):
 		Returns: np.ndarray of shape (11,) :
 			An array that contains the accuracy of the resulting model on the VALIDATION set.
 	"""
-	print(X_train.shape)
-	res = np.zeros((11))
+	res = np.zeros(11)
 	C = 1e-6
-	print(C)
 	C_vals = []
 	for i in range(11):
 		C *= 10;
 		C_vals.append(C)
 
+	# print(y_val)
 	for i in range(len(C_vals)):
 		clf = train_kernel(X_train, y_train, 'linear', C_vals[i])
-		create_plot(X_train, y_train, clf, np.log10(C_vals[i]))
-		plt.show()
+		# create_plot(X_train, y_train, clf, np.log10(C_vals[i]))
+		# plt.show()
 		y_pred = clf.predict(X_val)
-		res[i] = 100 * (1 - np.sum([y_pred[i] ^ y_val[i] for i in range(len(y_val))]) / len(y_val))
+		res[i] = 100 * (1 - np.sum(y_pred != y_val) / len(y_val))
 
 	plt.plot(np.log10(C_vals), res, 'b--')
 	plt.xlabel('penalty constant C in log10 scale')
 	plt.ylabel('accuracy percentage')
+	plt.savefig('C_vs_acc')
 	plt.show()
 	return res
 
@@ -106,26 +106,24 @@ def rbf_accuracy_per_gamma(X_train, y_train, X_val, y_val):
 			An array that contains the accuracy of the resulting model on the VALIDATION set.
 	"""
 	C = 10
-	# gamma_vals = gamma_log_grid_search()
 	gamma_vals = gamma_uniform_grid_search(0.2, 0.3, 11)
 	res = np.zeros((len(gamma_vals)))
 
 	for i in range(len(gamma_vals)):
 		clf = train_kernel(X_train, y_train, 'rbf', C, gamma_vals[i])
-		# create_plot(X_train, y_train, clf, C, np.log10(gamma_vals[i]))
 		# create_plot(X_train, y_train, clf, C, gamma_vals[i])
 		# plt.show()
 		y_pred = clf.predict(X_val)
-		res[i] = 100 * (1 - np.sum([y_pred[i] ^ y_val[i] for i in range(len(y_val))]) / len(y_val))
+		res[i] = 100 * (1 - np.sum(y_pred != y_val) / len(y_val))
 
-	# plt.plot(np.log10(gamma_vals), res, 'r--')
 	plt.plot(gamma_vals, res, 'r--')
 	plt.xlabel('gamma')
 	plt.ylabel('accuracy percentage')
+	plt.savefig('gamma_vs_acc')
 	plt.show()
 	return res
 
-def gamma_log_grid_search(start_point=np.power(10, -6), n_points=11):
+def gamma_log_grid_search(start_point=1e-6, n_points=11):
 	gamma = start_point
 	gamma_vals = []
 	for i in range(n_points):
@@ -148,4 +146,4 @@ if __name__ == "__main__":
 	# n_sv = train_three_kernels(x_train, y_train, x_val, y_val)
 	# print(n_sv)
 	linear_accuracy_per_C(x_train, y_train, x_val, y_val)
-	# rbf_accuracy_per_gamma(x_train, y_train, x_val, y_val)
+	rbf_accuracy_per_gamma(x_train, y_train, x_val, y_val)
