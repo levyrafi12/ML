@@ -95,6 +95,7 @@ def linear_accuracy_per_C(X_train, y_train, X_val, y_val):
 	plt.plot(np.log10(C_vals), res, 'b--')
 	plt.xlabel('penalty constant C in log10 scale')
 	plt.ylabel('accuracy percentage')
+	plt.savefig('penalty_constant')
 	plt.show()
 	return res
 
@@ -104,8 +105,8 @@ def rbf_accuracy_per_gamma(X_train, y_train, X_val, y_val):
 			An array that contains the accuracy of the resulting model on the VALIDATION set.
 	"""
 	C = 10
-	# gamma_vals = gamma_log_grid_search(np.power(10, -6))
-	gamma_vals = gamma_uniform_grid_search(0.2, 0.3, 11)
+	gamma_vals = gamma_log_grid_search()
+	# gamma_vals = gamma_uniform_grid_search(0.2, 0.3, 11)
 	res = np.zeros((len(gamma_vals)))
 
 	for i in range(len(gamma_vals)):
@@ -116,14 +117,17 @@ def rbf_accuracy_per_gamma(X_train, y_train, X_val, y_val):
 		y_pred = clf.predict(X_val)
 		res[i] = 100 * (1 - np.sum([y_pred[i] ^ y_val[i] for i in range(len(y_val))]) / len(y_val))
 
-	# plt.plot(np.log10(gamma_vals), res, 'r--')
-	plt.plot(gamma_vals, res, 'r--')
-	plt.xlabel('gamma')
+	plt.plot(np.log10(gamma_vals), res, 'r--')
+	xlabel = 'log10 gamma'
+	# xlabel ='gamma'
+	# plt.plot(gamma_vals, res, 'r--')
+	plt.xlabel(xlabel)
 	plt.ylabel('accuracy percentage')
+	plt.savefig('gamma_acc')
 	plt.show()
 	return res
 
-def gamma_log_grid_search(gamma, n_points=11):
+def gamma_log_grid_search(gamma=1e-6, n_points=11):
 	gamma_vals = []
 	for i in range(n_points):
 		gamma *= 10
