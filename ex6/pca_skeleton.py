@@ -152,7 +152,7 @@ def classify_images():
 		X_test_reduced = encoded_images[n_train:, :]
 		y_pred = clf.predict(X_test_reduced)
 		acc.append(100 * (1 - np.sum(y_pred != y_test) / len(y_test)))
-		print("acc {}".format(acc[-1]))
+		# print("acc {}".format(acc[-1]))
 
 	plt.plot(ks, acc, 'b-', linewidth=2)
 	title = 'Accuracy testset versus k'
@@ -202,5 +202,5 @@ if __name__ == '__main__':
 	# name = 'Tony Blair'
 	name = 'George W Bush'
 	# plot_eigen_faces(name)
-	iterate_k(name)
-	# classify_images()
+	# iterate_k(name)
+	classify_images()
