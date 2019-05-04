@@ -88,13 +88,16 @@ class KerasMnist(object):
         out = keras.layers.Activation('relu')(non_linear_outs[-1]) 
         
         i = 1
+        last = 0
         for hl in self.hidden_layer_dims[1:]:
-            i += 1
             non_linear_outs.append(Dense(hl)(out)) # W_i * out
             y = non_linear_outs[-1]
-            if (i - 1) % self.skips == 0: # layer 3, 5, ... assume skip is 2
+            if (i - last) >= self.skips: # hidden layer 2, 4, ... assume skip is 2
                 y = keras.layers.add([y, non_linear_outs[-self.skips - 1]])
+                non_linear_outs[-1] = y
+                last = i
             out = keras.layers.Activation('relu')(y)
+            i += 1
         
         out = Dense(self.num_classes, activation=K.tf.nn.softmax)(out)
 
